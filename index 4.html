@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HABITACIÓN 707</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root{--bg:#07070a;--red:#dc2626;--vio:#8b5cf6;--card:#0e0e14;--line:#27273a;}
+  html,body{background:var(--bg);color:#e5e7eb;font-family:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;}
+  body{
+    background-image:
+      linear-gradient(rgba(139,92,246,.075) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(139,92,246,.075) 1px,transparent 1px),
+      linear-gradient(rgba(139,92,246,.16) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(139,92,246,.16) 1px,transparent 1px);
+    background-size:32px 32px,32px 32px,160px 160px,160px 160px;
+    background-attachment:fixed;
+    min-height:100vh;
+  }
+  /* marcas de agua */
+  #wm{position:fixed;inset:0;overflow:hidden;pointer-events:none;z-index:0}
+  #wm span{position:absolute;white-space:nowrap;color:rgba(167,139,250,.09);font-weight:500;animation:drift 18s ease-in-out infinite alternate}
+  @keyframes drift{from{transform:translateY(0) rotate(var(--r,0deg))}to{transform:translateY(-14px) rotate(var(--r,0deg))}}
+  main,#hud{position:relative;z-index:1}
+  #hud{position:fixed;top:0;left:0;right:0;z-index:40;background:rgba(7,7,10,.92);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;border-radius:10px;padding:.55rem .9rem;font-weight:700;font-size:.85rem;transition:transform .08s,background .15s,opacity .15s;cursor:pointer;border:1px solid transparent}
+  .btn:active{transform:scale(.97)}
+  .btn-vio{background:var(--vio);color:#fff}.btn-vio:hover{background:#7c3aed}
+  .btn-ghost{background:transparent;border-color:#3b3b55;color:#d4d4e8}.btn-ghost:hover{border-color:var(--vio);color:#fff}
+  .btn-red{background:var(--red);color:#fff}.btn-red:hover{background:#b91c1c}
+  .btn[disabled]{opacity:.4;cursor:not-allowed}
+  /* notación matemática */
+  .m{white-space:normal;overflow-wrap:anywhere}
+  .frac{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 .2em;line-height:1.2;white-space:nowrap}
+  .frac>.num{border-bottom:1.6px solid currentColor;padding:0 .3em .08em}
+  .frac>.den{padding:.08em .3em 0}
+  .rad{display:inline-block;white-space:nowrap}
+  .rad>.rs{font-size:1.1em;line-height:1;margin-right:-1px}
+  .rad>.vin{display:inline-block;border-top:1.6px solid currentColor;padding:.05em .18em 0;line-height:1.15}
+  /* ranuras y fichas */
+  .slot{border:2px dashed #3b3b55;border-radius:12px;padding:.5rem .6rem;min-height:92px;cursor:pointer;background:rgba(255,255,255,.015);transition:border-color .15s,background .15s}
+  .slot:hover{border-color:var(--vio)}
+  .slot.filled{border-style:solid;border-color:var(--vio);background:rgba(139,92,246,.12)}
+  .slot-body{font-size:.95rem;font-weight:600;display:flex;align-items:center;min-height:48px;word-break:break-word}
+  .tok{border:1px solid #3b3b55;background:#15151f;color:#eee;border-radius:10px;padding:.55rem .75rem;font-weight:600;font-size:.9rem;cursor:pointer;transition:transform .08s,border-color .15s,background .15s;text-align:left}
+  .tok:hover{border-color:var(--vio);background:#1b1b2b;transform:translateY(-2px)}
+  .tok.off{opacity:.55;pointer-events:none}
+  .shake{animation:shake .5s}
+  @keyframes shake{10%,90%{transform:translateX(-2px)}20%,80%{transform:translateX(5px)}30%,50%,70%{transform:translateX(-9px)}40%,60%{transform:translateX(9px)}}
+  .pop{animation:pop .35s ease-out}
+  @keyframes pop{from{transform:scale(.92);opacity:0}to{transform:scale(1);opacity:1}}
+  .heart{font-size:1.25rem;line-height:1;transition:color .2s,transform .2s}
+  .heart.on{color:var(--red);text-shadow:0 0 8px rgba(220,38,38,.6)}
+  .heart.off{color:#33333f;transform:scale(.85)}
+  .glitch{text-shadow:2px 0 rgba(220,38,38,.8),-2px 0 rgba(139,92,246,.8)}
+  .lvl{text-align:left;transition:transform .12s,border-color .15s}
+  .lvl:hover{transform:translateY(-3px);border-color:var(--vio)}
+  .locked{opacity:.55;cursor:pointer}
+  details>summary{cursor:pointer;list-style:none}
+  details>summary::-webkit-details-marker{display:none}
+  ::-webkit-scrollbar{height:8px;width:8px}::-webkit-scrollbar-thumb{background:#2c2c44;border-radius:8px}
+  /* ambiente de terror */
+  #fog,#dark,#blink,#danger,#flash{position:fixed;inset:0;pointer-events:none}
+  #fog{z-index:2;opacity:.6;background:
+    radial-gradient(ellipse 60% 40% at 20% 80%,rgba(139,92,246,.12),transparent 70%),
+    radial-gradient(ellipse 50% 35% at 80% 20%,rgba(220,38,38,.08),transparent 70%);
+    animation:fogmove 22s ease-in-out infinite alternate}
+  @keyframes fogmove{from{transform:translate(-3%,2%) scale(1)}to{transform:translate(3%,-2%) scale(1.08)}}
+  #dark{z-index:30;background:radial-gradient(circle 360px at var(--mx,50vw) var(--my,30vh),transparent 0,rgba(0,0,0,.15) 55%,rgba(0,0,0,.5) 100%)}
+  #blink{z-index:31;background:#000;opacity:0;animation:blink 11s infinite}
+  @keyframes blink{0%,38%,47%,100%{opacity:0}39%{opacity:.5}40%{opacity:0}41%{opacity:.7}42%{opacity:0}73%{opacity:0}74%{opacity:.45}76%{opacity:0}}
+  #danger{z-index:35;opacity:0;box-shadow:inset 0 0 160px 40px rgba(220,38,38,.55);transition:opacity .6s}
+  #danger.on{opacity:1;animation:dpulse .95s infinite}
+  @keyframes dpulse{0%,100%{opacity:.55}15%{opacity:1}30%{opacity:.6}45%{opacity:.95}}
+  #flash{z-index:45;background:rgba(220,38,38,.55);opacity:0}
+  #flash.go{animation:fl .55s ease-out}
+  @keyframes fl{0%{opacity:.9}100%{opacity:0}}
+  .flick,h1{animation:txtflick 7s infinite}
+  @keyframes txtflick{0%,92%,100%{opacity:1}93%{opacity:.3}94%{opacity:1}96%{opacity:.5}97%{opacity:1}}
+  @media (prefers-reduced-motion:reduce){#blink,.flick,h1,#fog{animation:none}}
+</style>
+</head>
+<body>
+
+<div id="wm" aria-hidden="true"></div>
+<div id="fog" aria-hidden="true"></div>
+<div id="dark" aria-hidden="true"></div>
+<div id="blink" aria-hidden="true"></div>
+<div id="danger" aria-hidden="true"></div>
+<div id="flash" aria-hidden="true"></div>
+
+<!-- BARRA SUPERIOR (HUD) -->
+<header id="hud">
+  <div class="max-w-5xl mx-auto flex flex-wrap items-center gap-2 px-3 py-2">
+    <div id="hud-game" class="hidden flex flex-wrap items-center gap-x-3 gap-y-2 flex-1">
+      <button class="btn btn-ghost !py-1.5" onclick="goMenu()">← Niveles</button>
+      <div id="hud-level" class="text-xs md:text-sm font-bold text-zinc-200"></div>
+      <div id="hud-hearts" class="flex items-center gap-1" title="Vidas"></div>
+      <div class="text-xs md:text-sm font-bold text-violet-300">Pistas: <span id="hud-clues">0</span>/6</div>
+    </div>
+    <div class="flex items-center gap-2 ml-auto">
+      <button id="hud-sound" class="btn btn-ghost !py-1.5" onclick="toggleSound()" title="Sonido">🔊</button>
+      <button class="btn btn-vio !py-1.5" onclick="openManual()">📖 Manual de Campo</button>
+    </div>
+  </div>
+</header>
+
+<main>
+
+<!-- PANTALLA DE INICIO -->
+<section id="screen-menu" class="max-w-5xl mx-auto px-4 pt-6 pb-16">
+  <p class="text-center text-xs md:text-sm text-violet-200 border border-violet-500/40 bg-violet-500/10 rounded-lg px-3 py-2">Este es un videojuego creado para la presentación de Caleb Villegas Medero, para la clase de matemáticas.</p>
+
+  <div class="text-center mt-10">
+    <h1 class="text-4xl md:text-7xl font-extrabold tracking-tight glitch">HABITACIÓN 707</h1>
+    <p class="mt-4 text-sm md:text-base text-zinc-300 max-w-2xl mx-auto leading-relaxed">
+      En cada habitación tienes que acomodar los 4 pasos en orden para resolver la ecuación.
+      Si lo haces bien, encuentras una pista. Hay que reunir las 6 pistas del monstruo y solo tienes 3 vidas.
+    </p>
+    <p class="mt-3 text-xs md:text-sm italic text-red-300/80 flick">Dicen que nadie ha salido de la 707 antes del amanecer… Sube el volumen y apaga la luz.</p>
+    <div class="mt-6 flex flex-wrap items-center justify-center gap-3">
+      <button class="btn btn-vio !text-base !px-6 !py-3" onclick="startLevel(0)">▶ Jugar Nivel 1</button>
+      <button class="btn btn-ghost !text-base !px-6 !py-3" onclick="openManual()">📖 Abrir Manual de Campo</button>
+    </div>
+  </div>
+
+  <h2 class="mt-12 mb-3 text-sm font-bold text-zinc-400 tracking-widest">// SELECCIONA UN NIVEL</h2>
+  <div id="levels" class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"></div>
+</section>
+
+<!-- PANTALLA DE JUEGO -->
+<section id="screen-game" class="hidden max-w-4xl mx-auto px-4 pt-6 pb-20">
+  <div id="room-static"></div>
+  <div class="mt-5">
+    <div class="text-xs font-bold text-zinc-400 tracking-widest mb-2">ZONA DE RESPUESTA</div>
+    <div id="slots" class="grid grid-cols-2 md:grid-cols-4 gap-2"></div>
+  </div>
+  <div class="mt-5">
+    <div class="text-xs font-bold text-zinc-400 tracking-widest mb-2">BANCO DE FICHAS (toca una para colocarla)</div>
+    <div id="bank" class="flex flex-wrap gap-2"></div>
+  </div>
+  <div id="actions" class="mt-5 flex flex-wrap gap-3">
+    <button class="btn btn-ghost" onclick="clearSlots()">Limpiar cuadritos</button>
+    <button id="btn-confirm" class="btn btn-vio" onclick="confirmAnswer()">✓ Confirmar Respuesta</button>
+  </div>
+  <div id="fb" class="mt-4"></div>
+  <div id="success" class="mt-4"></div>
+</section>
+
+<!-- GAME OVER -->
+<section id="screen-over" class="hidden max-w-xl mx-auto px-4 pt-10 pb-16 text-center">
+  <div class="card p-8 border-red-600/60">
+    <div class="text-6xl">💀</div>
+    <h2 class="mt-3 text-4xl md:text-5xl font-extrabold text-red-500 glitch">GAME OVER</h2>
+    <p class="mt-3 text-zinc-300 text-sm">La luz se apaga y escuchas su respiración justo detrás de ti… El monstruo sigue escondido.</p>
+    <p class="mt-1 text-zinc-400 text-xs">Pistas reunidas: <span id="over-clues">0</span>/6</p>
+    <div class="mt-6 flex flex-wrap justify-center gap-3">
+      <button class="btn btn-red" onclick="startLevel(S.level)">Reintentar este nivel</button>
+      <button class="btn btn-ghost" onclick="goMenu()">← Niveles</button>
+      <button class="btn btn-ghost" onclick="openManual()">📖 Manual de Campo</button>
+    </div>
+  </div>
+</section>
+
+<!-- VICTORIA -->
+<section id="screen-win" class="hidden max-w-4xl mx-auto px-4 pt-6 pb-20">
+  <div class="text-center">
+    <div class="text-xs text-violet-300 tracking-widest">NIVEL COMPLETADO</div>
+    <h2 class="mt-2 text-3xl md:text-6xl font-extrabold glitch">EL MONSTRUO ES <span class="text-violet-400">FRAMALDO</span></h2>
+  </div>
+  <div class="mt-6 grid md:grid-cols-2 gap-4 items-center">
+    <div class="card p-3 flex justify-center" id="framaldo"></div>
+    <div class="card p-4">
+      <div class="text-xs font-bold text-zinc-400 tracking-widest mb-2">LAS 6 PISTAS QUE REUNISTE</div>
+      <ol id="win-clues" class="space-y-2 text-sm text-zinc-200 list-decimal pl-5"></ol>
+      <div class="mt-4 text-sm text-zinc-300">Vidas restantes: <span id="win-hearts"></span></div>
+    </div>
+  </div>
+  <div class="mt-6 flex flex-wrap justify-center gap-3" id="win-actions"></div>
+</section>
+
+</main>
+
+<!-- MANUAL DE CAMPO -->
+<div id="manual" class="hidden fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-2 md:p-6" onclick="if(event.target===this)closeManual()">
+  <div class="card w-full max-w-3xl flex flex-col" style="max-height:92vh">
+    <div class="flex items-center justify-between px-4 py-3 border-b border-zinc-800">
+      <h2 class="font-extrabold text-lg">📖 Manual de Campo</h2>
+      <button class="btn btn-ghost !py-1" onclick="closeManual()">✕ Cerrar</button>
+    </div>
+    <div id="m-tabs" class="flex gap-1 overflow-x-auto p-2 border-b border-zinc-800"></div>
+    <div id="m-body" class="overflow-y-auto p-4 md:p-5"></div>
+  </div>
+</div>
+
+<div id="toast" class="hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] card px-4 py-3 text-sm border-violet-500/60 max-w-[90vw] text-center"></div>
+
+<script>
+/* =========================================================
+   NOTACIÓN MATEMÁTICA (fracciones apiladas y raíces con barra)
+   ========================================================= */
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+const OPR=/[A-Za-z0-9²³⁴⁵.]/;
+function fmt(raw){
+  let s=esc(raw);
+  // fracciones: se procesan de derecha a izquierda
+  let pos=s.length, idx;
+  while((idx=s.lastIndexOf('/',pos-1))>=0){
+    let l,num,r,den,j,d;
+    if(s[idx-1]===')'){
+      d=0;
+      for(j=idx-1;j>=0;j--){ if(s[j]===')')d++; else if(s[j]==='('){d--; if(d===0)break;} }
+      l=j; num=s.slice(j+1,idx-1);
+    }else{
+      j=idx-1; while(j>=0&&OPR.test(s[j]))j--;
+      l=j+1; num=s.slice(l,idx);
+    }
+    if(s[idx+1]==='('){
+      d=0;
+      for(j=idx+1;j<s.length;j++){ if(s[j]==='(')d++; else if(s[j]===')'){d--; if(d===0)break;} }
+      r=j+1; den=s.slice(idx+2,j);
+    }else{
+      j=idx+1; while(j<s.length&&OPR.test(s[j]))j++;
+      r=j; den=s.slice(idx+1,r);
+    }
+    const html='<span class="frac"><span class="num">'+num+'</span><span class="den">'+den+'</span></span>';
+    s=s.slice(0,l)+html+s.slice(r);
+    pos=l;
+    if(pos<=0)break;
+  }
+  // raíces cuadradas con barra superior
+  let out='',i=0;
+  while(i<s.length){
+    if(s[i]==='√'){
+      let inner,j,d;
+      if(s[i+1]==='('){
+        d=0;
+        for(j=i+1;j<s.length;j++){ if(s[j]==='(')d++; else if(s[j]===')'){d--; if(d===0)break;} }
+        inner=s.slice(i+2,j); i=j+1;
+      }else{
+        j=i+1; while(j<s.length&&/[A-Za-z0-9²]/.test(s[j]))j++;
+        inner=s.slice(i+1,j); i=j;
+      }
+      out+='<span class="rad"><span class="rs">√</span><span class="vin">'+inner+'</span></span>';
+    }else{ out+=s[i]; i++; }
+  }
+  return '<span class="m">'+out+'</span>';
+}
+// texto normal con matemática entre `acentos graves`
+function rich(t){
+  return String(t).split('`').map((seg,k)=>k%2?fmt(seg):esc(seg)).join('');
+}
+
+/* =========================================================
+   SONIDO (Web Audio API)
+   ========================================================= */
+let AC=null, muted=false;
+function ac(){
+  if(!AC){ try{AC=new (window.AudioContext||window.webkitAudioContext)();}catch(e){} }
+  if(AC&&AC.state==='suspended')AC.resume();
+  return AC;
+}
+function tone(f,t0,d,type,v){
+  const a=ac(); if(!a||muted)return;
+  const o=a.createOscillator(), g=a.createGain();
+  o.type=type||'sine'; o.frequency.value=f;
+  const s=a.currentTime+t0;
+  g.gain.setValueAtTime(0.0001,s);
+  g.gain.exponentialRampToValueAtTime(v||.08,s+.012);
+  g.gain.exponentialRampToValueAtTime(0.0001,s+d);
+  o.connect(g); g.connect(a.destination);
+  o.start(s); o.stop(s+d+.03);
+}
+const sfx={
+  click(){tone(520,0,.06,'square',.035);},
+  back(){tone(330,0,.06,'square',.03);},
+  ok(){tone(660,0,.12,'triangle',.09);tone(880,.1,.2,'triangle',.09);},
+  err(){tone(150,0,.45,'sawtooth',.08);tone(158,0,.45,'sawtooth',.08);tone(70,.05,.6,'sine',.12);noiseBurst(0,.35,.06,600);},
+  dead(){tone(40,0,2.2,'sine',.2);tone(41.5,0,2.2,'sine',.2);noiseBurst(0,1.2,.07,300);},
+  boom(){tone(45,0,1.2,'sine',.2);noiseBurst(0,.6,.06,200);},
+  win(){[523,659,784,1047,784,1047,1319].forEach((f,i)=>tone(f,i*.13,.32,'triangle',.09));}
+};
+function toggleSound(){
+  muted=!muted;
+  document.getElementById('hud-sound').textContent=muted?'🔇':'🔊';
+  if(amb&&AC)amb.master.gain.setTargetAtTime(muted?0:.55,AC.currentTime,.15);
+  if(!muted){startAmbience();sfx.click();}
+}
+
+/* ---------- ambiente de misterio (todo generado con Web Audio) ---------- */
+let amb=null,hbTimer=null,evTimer=null;
+function noiseBuf(a,sec){
+  const n=Math.floor(a.sampleRate*sec),b=a.createBuffer(1,n,a.sampleRate),d=b.getChannelData(0);
+  for(let i=0;i<n;i++)d[i]=Math.random()*2-1;
+  return b;
+}
+function noiseBurst(t0,d,v,freq){
+  const a=ac(); if(!a||muted)return;
+  const s=a.createBufferSource(); s.buffer=noiseBuf(a,Math.max(d,.1));
+  const f=a.createBiquadFilter(); f.type='bandpass'; f.frequency.value=freq||800;
+  const g=a.createGain(), t=a.currentTime+t0;
+  g.gain.setValueAtTime(v,t); g.gain.exponentialRampToValueAtTime(0.0001,t+d);
+  s.connect(f); f.connect(g); g.connect(a.destination); s.start(t); s.stop(t+d+.05);
+}
+function startAmbience(){
+  const a=ac(); if(!a||amb)return;
+  const master=a.createGain(); master.gain.value=muted?0:.55; master.connect(a.destination);
+  const lp=a.createBiquadFilter(); lp.type='lowpass'; lp.frequency.value=320; lp.Q.value=4; lp.connect(master);
+  [[55,'sawtooth',.05],[55.6,'sawtooth',.05],[82.4,'sine',.06],[116.5,'triangle',.03]].forEach(x=>{
+    const o=a.createOscillator(),g=a.createGain(); o.type=x[1]; o.frequency.value=x[0]; g.gain.value=x[2];
+    o.connect(g); g.connect(lp); o.start();
+  });
+  const lfo=a.createOscillator(),lg=a.createGain(); lfo.frequency.value=.07; lg.gain.value=140;
+  lfo.connect(lg); lg.connect(lp.frequency); lfo.start();
+  // viento lejano
+  const w=a.createBufferSource(); w.buffer=noiseBuf(a,4); w.loop=true;
+  const wf=a.createBiquadFilter(); wf.type='bandpass'; wf.frequency.value=500; wf.Q.value=.8;
+  const wg=a.createGain(); wg.gain.value=.025;
+  const wl=a.createOscillator(),wlg=a.createGain(); wl.frequency.value=.11; wlg.gain.value=300;
+  wl.connect(wlg); wlg.connect(wf.frequency); wl.start();
+  w.connect(wf); wf.connect(wg); wg.connect(master); w.start();
+  amb={master};
+  scheduleEvent();
+}
+function ghostEvent(){
+  const a=ac(); if(!a||muted)return;
+  const r=Math.random();
+  if(r<.4){ // campana / piano lejano, notas que chocan entre sí
+    const notes=[233.08,246.94,277.18,311.13,369.99], n=notes[Math.floor(Math.random()*notes.length)];
+    tone(n,0,3.2,'sine',.05); tone(n*1.5,0,2.4,'sine',.02); tone(n*1.0595,.03,3,'sine',.025);
+  }else if(r<.7){ // puerta que cruje
+    const o=a.createOscillator(),g=a.createGain(),f=a.createBiquadFilter(),t=a.currentTime;
+    o.type='sawtooth'; o.frequency.setValueAtTime(70,t);
+    o.frequency.linearRampToValueAtTime(130,t+1.1); o.frequency.linearRampToValueAtTime(85,t+1.8);
+    f.type='bandpass'; f.frequency.value=420; f.Q.value=6;
+    g.gain.setValueAtTime(.0001,t); g.gain.linearRampToValueAtTime(.05,t+.3); g.gain.exponentialRampToValueAtTime(.0001,t+1.9);
+    o.connect(f); f.connect(g); g.connect(a.destination); o.start(t); o.stop(t+2);
+  }else{ // golpe sordo, como pasos
+    tone(62,0,.25,'sine',.13); tone(52,.5,.25,'sine',.1);
+  }
+}
+function scheduleEvent(){
+  clearTimeout(evTimer);
+  evTimer=setTimeout(()=>{ghostEvent();scheduleEvent();},6000+Math.random()*10000);
+}
+function setHeartbeat(on){
+  if(on&&!hbTimer){hbTimer=setInterval(()=>{tone(58,0,.18,'sine',.16);tone(52,.22,.2,'sine',.12);},950);}
+  if(!on&&hbTimer){clearInterval(hbTimer);hbTimer=null;}
+}
+function flash(){const f=document.getElementById('flash');f.classList.remove('go');void f.offsetWidth;f.classList.add('go');}
+document.addEventListener('visibilitychange',()=>{
+  if(!AC)return;
+  if(document.hidden)AC.suspend(); else if(!muted)AC.resume();
+});
+
+/* =========================================================
+   MANUAL DE CAMPO
+   ========================================================= */
+const MANUAL=[
+{tab:'Lineales',icon:'📏',name:'Ecuaciones Lineales',
+ recog:"La variable tiene exponente máximo 1. No hay x², ni raíces, ni barras, ni la variable en un denominador. Ejemplo: `3x + 5 = 20`.",
+ steps:["Distribuye los paréntesis (multiplica el número de afuera por cada término de adentro, con su signo).","Si hay fracciones, multiplica toda la ecuación por el MCD de los denominadores para eliminarlas.","Reduce los términos semejantes en cada lado.","Si hay variables en ambos lados: mueve las variables a un lado y los números al otro, cambiando el signo al pasar.","Despeja la variable dividiendo entre su coeficiente."],
+ hints:["Mueve la variable de menor coeficiente hacia la de mayor coeficiente. Así evitas coeficientes negativos.","Al final sustituye tu respuesta en la ecuación original para comprobar."],
+ error:"Pasar términos al otro lado sin cambiarles el signo, o distribuir mal un paréntesis (por ejemplo, olvidar multiplicar el segundo término o el signo negativo de afuera).",
+ ex:{eq:"3(2x - 4) + 5 = 2x + 9",steps:["Distribuye: `6x - 12 + 5 = 2x + 9`","Reduce: `6x - 7 = 2x + 9`","Mueve la 2x hacia la 6x (cambia signo) y el -7 al otro lado: `6x - 2x = 9 + 7`","Reduce: `4x = 16`","Despeja: x = `16/4`, así que x = 4","Comprueba: 3(2·4 - 4) + 5 = 17 y 2·4 + 9 = 17 ✓"],ans:"x = 4"},
+ tr:{eq:"5x - 3(x - 2) = 4x - 6",ans:"x = 6"}},
+{tab:'Cuadráticas',icon:'📈',name:'Ecuaciones Cuadráticas',
+ recog:"El exponente máximo de la variable es 2. Forma general: `ax² + bx + c = 0`.",
+ steps:["Iguala la ecuación a 0 (obligatorio). Pasa todo a un lado y deja 0 en el otro.","Factoriza la expresión.","Aplica la Propiedad del Producto Cero: si `A · B = 0`, entonces A = 0 o B = 0. Iguala cada factor a 0.","Despeja la variable en cada factor."],
+ hints:["Busca factor común primero, antes de probar otro método.","Para `x² + bx + c`, busca dos números que multiplicados den c y sumados den b."],
+ error:"Factorizar sin igualar a 0 primero, o no cambiar el signo al despejar (de `x + 3 = 0` sale x = -3, no x = 3).",
+ ex:{eq:"x² - 3x = 10",steps:["Iguala a 0: `x² - 3x - 10 = 0`","Factoriza (dos números que multiplicados den -10 y sumados den -3): `(x - 5)(x + 2) = 0`","Producto Cero: `x - 5 = 0` o `x + 2 = 0`","Despeja: x = 5 y x = -2"],ans:"x = 5, x = -2"},
+ tr:{eq:"x² + 7x + 12 = 0",ans:"x = -3, x = -4"}},
+{tab:'Polinómicas',icon:'🧮',name:'Ecuaciones Polinómicas (grado mayor que 2)',
+ recog:"La variable tiene exponente 3, 4 o mayor y la ecuación está igualada a 0. Ejemplo: `x³ - 4x² + x + 6 = 0`.",
+ steps:["Intenta factor común primero.","Si hay 4 términos, prueba agrupación. También revisa diferencia de cuadrados o suma/diferencia de cubos.","Si nada de eso funciona, lista las posibles raíces racionales (divisores del término constante entre divisores del coeficiente principal) y usa división sintética hasta que el residuo sea 0.","Factoriza el cociente que te queda.","Aplica el Producto Cero e iguala cada factor a 0."],
+ hints:["En la división sintética, escribe un 0 por cada exponente que falte en el polinomio.","Prueba primero con 1, -1, 2, -2."],
+ error:"Ir directo a división sintética sin buscar un factor común, u olvidar el 0 cuando falta un exponente.",
+ ex:{eq:"x³ - 4x² + x + 6 = 0",steps:["No hay factor común ni agrupación sencilla, así que buscamos raíces racionales.","Posibles raíces: ±1, ±2, ±3, ±6 (divisores de 6).","División sintética con x = -1 usando 1, -4, 1, 6: baja el 1; -1·1 = -1 → -5; -1·(-5) = 5 → 6; -1·6 = -6 → 0 ✓ (residuo 0)","El cociente es `x² - 5x + 6`, así que `(x + 1)(x² - 5x + 6) = 0`","Factoriza: `(x + 1)(x - 2)(x - 3) = 0`","Producto Cero: x = -1, x = 2, x = 3"],ans:"x = -1, 2, 3"},
+ tr:{eq:"x³ - 2x² - 9x + 18 = 0",ans:"x = 2, x = 3, x = -3"}},
+{tab:'Valor Absoluto',icon:'∣x∣',name:'Ecuaciones con Valor Absoluto',
+ recog:"La variable está dentro de barras `| |`. Ejemplo: `|x - 3| = 4`.",
+ steps:["Aísla las barras: suma, resta y divide lo que esté afuera hasta dejar `|...|` solo de un lado.","Mira el otro lado: si queda igualado a un número negativo, no hay solución (∅).","Si es positivo, abre dos casos: lo de adentro = el número, y lo de adentro = el número con signo negativo.","Resuelve cada caso por separado."],
+ hints:["No operes nada dentro de las barras antes de aislarlas.","El valor absoluto nunca puede ser negativo."],
+ error:"Abrir los dos casos antes de aislar las barras, o intentar resolver cuando el valor absoluto está igualado a un número negativo.",
+ ex:{eq:"2|x - 3| + 1 = 9",steps:["Resta 1: `2|x - 3| = 8`","Divide entre 2 (ya aislado): `|x - 3| = 4`","Caso 1: `x - 3 = 4` → x = 7","Caso 2: `x - 3 = -4` → x = -1"],ans:"x = 7, x = -1"},
+ tr:{eq:"|2x + 5| - 3 = 6",ans:"x = 2, x = -7"}},
+{tab:'Radicales',icon:'√',name:'Ecuaciones Radicales',
+ recog:"La variable está bajo un radical `√`. Ejemplo: `√(x + 2) = x`.",
+ steps:["Aísla el radical en un lado.","Eleva ambos lados a la potencia del índice (al cuadrado si es raíz cuadrada).","Resuelve la ecuación que queda (puede ser lineal o cuadrática).","Verifica obligatoriamente cada respuesta en la ecuación original para descartar soluciones extrañas."],
+ hints:["Usa paréntesis al elevar un binomio al cuadrado: `(x + 2)² = x² + 4x + 4`.","Si el radical queda igualado a un negativo, revisa: casi seguro es una solución extraña."],
+ error:"No verificar y aceptar soluciones extrañas, o elevar término por término en lugar de elevar todo el lado completo.",
+ ex:{eq:"√(x + 2) = x",steps:["El radical ya está aislado. Eleva al cuadrado: `x + 2 = x²`","Iguala a 0: `x² - x - 2 = 0`","Factoriza: `(x - 2)(x + 1) = 0`, entonces x = 2 o x = -1","Verifica x = 2: `√4` = 2 ✓ (válida)","Verifica x = -1: `√1` = 1, pero el lado derecho es -1 ✗ (solución extraña)"],ans:"x = 2 (válida); x = -1 es extraña"},
+ tr:{eq:"√(3x + 1) + 2 = 6",ans:"x = 5"}},
+{tab:'Racionales',icon:'÷',name:'Ecuaciones Racionales',
+ recog:"La variable aparece en el denominador. Ejemplo: `4/(x - 1) = 2`.",
+ steps:["Halla los valores prohibidos: iguala cada denominador a 0.","Multiplica toda la ecuación por el MCD de los denominadores (incluso los números sueltos).","Resuelve la ecuación que queda.","Verifica que tu respuesta no sea un valor prohibido. Si lo es, se descarta."],
+ hints:["Anota `x ≠ ...` al inicio, antes de hacer cualquier otra cosa.","Si todas las respuestas son valores prohibidos, la ecuación no tiene solución."],
+ error:"Olvidar multiplicar los números enteros sueltos por el MCD, o aceptar un valor prohibido como respuesta.",
+ ex:{eq:"4/(x - 1) + 2 = 10/(x - 1)",steps:["Valor prohibido: `x - 1 = 0` → x ≠ 1","Multiplica todo por el MCD `(x - 1)`, incluido el 2 suelto: `4 + 2(x - 1) = 10`","Distribuye y reduce: `2x + 2 = 10`","Despeja: `2x = 8`, entonces x = 4","Verifica: 4 ≠ 1 ✓ (válida)"],ans:"x = 4, con x ≠ 1"},
+ tr:{eq:"5/(x + 3) = 2/x",ans:"x = 2, con x ≠ -3, 0"}}
+];
+
+/* =========================================================
+   NIVELES Y EJERCICIOS (la habitación N usa el tipo N del manual)
+   ========================================================= */
+const ATMOS=["La puerta se abre sola. Hace mucho frío.","Hay huellas húmedas en la alfombra. Siguen hacia adentro.","Algo se mueve dentro del armario.","El espejo está empañado. Alguien escribió algo en el vidrio.","La luz parpadea. Escuchas una respiración muy cerca.","El expediente está sobre la mesa. Ya casi sabes quién es."];
+const TIPOS=['Ecuación Lineal','Ecuación Cuadrática','Ecuación Polinómica (grado > 2)','Ecuación con Valor Absoluto','Ecuación Radical','Ecuación Racional'];
+const LEVELS=[
+{name:'La Puerta 707',diff:'Básico',color:'#22c55e',
+ titles:["El Pomo Frío","Huellas en la Alfombra","La Caja del Armario","El Espejo del Baño","La Cámara de Vapor","El Expediente"],
+ clues:["El código 6 abre la puerta y ves una silueta muy alta.","El escáner confirma una postura atlética y cero cuernos.","Abres la caja y encuentras la mitad izquierda de un uniforme de baloncesto.","El espejo revela la mitad derecha: un uniforme de voleibol.","Se limpia la cámara y ves su rostro: rasgos asiáticos y mirada seria.","El código 2 desbloquea el expediente final."],
+ rooms:[
+  {eq:"5x - 3(x - 2) = 4x - 6",ok:["5x - 3x + 6 = 4x - 6","2x + 6 = 4x - 6","-2x = -12","x = 6"],bad:["5x - 3x - 6 = 4x - 6","6x = 0","x = -6"]},
+  {eq:"x² + 7x + 12 = 0",ok:["(x + 3)(x + 4) = 0","x + 3 = 0 o x + 4 = 0","x = -3","x = -4"],bad:["(x - 3)(x - 4) = 0","x = 3","x = 4"]},
+  {eq:"x³ - 2x² - 9x + 18 = 0",ok:["x²(x - 2) - 9(x - 2) = 0","(x - 2)(x - 3)(x + 3) = 0","x = 2","x = 3, x = -3"],bad:["(x + 2)(x² - 9) = 0","x = -2","x = 9"]},
+  {eq:"|2x + 5| - 3 = 6",ok:["|2x + 5| = 9","2x + 5 = 9 o 2x + 5 = -9","x = 2","x = -7"],bad:["|2x + 5| = 3","No tiene solución (∅)","x = -2"]},
+  {eq:"√(3x + 1) + 2 = 6",ok:["√(3x + 1) = 4","3x + 1 = 16","x = 5","√16 + 2 = 6 (Válida)"],bad:["3x + 1 = 4","3x + 1 = 8","Solución extraña"]},
+  {eq:"5/(x + 3) = 2/x",ok:["Valores prohibidos: x ≠ -3, 0","5x = 2(x + 3)","3x = 6","x = 2 (Válida)"],bad:["5x = 2x + 3","x = -3","x = 1"]}
+ ]},
+{name:'El Pasillo Oscuro',diff:'Intermedio',color:'#eab308',
+ titles:["La Primera Luz","Sombras en la Pared","Los Casilleros","Fotos Rotas","La Cámara de Seguridad","El Cajón del Fondo"],
+ clues:["El código 5 enciende la luz del pasillo y proyecta una sombra enorme: es una figura muy alta.","Las huellas en el piso son largas y firmes: alguien atlético. En la sombra no hay cuernos.","En un casillero encuentras la mitad izquierda de un uniforme de baloncesto rojo y negro.","Una foto rota muestra la mitad derecha: camiseta de voleibol de manga corta.","Una cámara de seguridad guardó su cara: rasgos asiáticos y expresión seria.","El código 5 abre el cajón del fondo y aparece un expediente con un nombre sin terminar."],
+ rooms:[
+  {eq:"4(3x - 2) - 2x = 5(x + 2) + 7",ok:["12x - 8 - 2x = 5x + 10 + 7","10x - 8 = 5x + 17","5x = 25","x = 5"],bad:["12x - 2 - 2x = 5x + 2 + 7","15x = 9","x = -5"]},
+  {eq:"x² - 4x = 21",ok:["x² - 4x - 21 = 0","(x - 7)(x + 3) = 0","x = 7","x = -3"],bad:["(x + 7)(x - 3) = 0","x = -7","x = 3"]},
+  {eq:"2x³ - 18x = 0",ok:["2x(x² - 9) = 0","2x(x - 3)(x + 3) = 0","x = 0","x = 3, x = -3"],bad:["x² - 9 = 0","x = 9","Solo x = 3 y x = -3"]},
+  {eq:"3|x - 4| - 5 = 10",ok:["3|x - 4| = 15","|x - 4| = 5","x = 9","x = -1"],bad:["|x - 4| = 15","x = 1","No tiene solución (∅)"]},
+  {eq:"2√(x - 1) - 3 = 5",ok:["2√(x - 1) = 8","√(x - 1) = 4","x - 1 = 16","x = 17 (Válida)"],bad:["x - 1 = 4","x = 5","x = 15"]},
+  {eq:"6/(x - 2) + 1 = 9/(x - 2)",ok:["Valor prohibido: x ≠ 2","6 + (x - 2) = 9","x + 4 = 9","x = 5 (Válida)"],bad:["6 + 1 = 9","x = 2","x = 11"]}
+ ]},
+{name:'Cámara de Espejos',diff:'Avanzado',color:'#f97316',
+ titles:["El Reflejo Torcido","El Espejo Roto","La Sala Doble","El Marco Vacío","El Espejo de Vapor","El Último Reflejo"],
+ clues:["El primer espejo se enciende con el código 4 y refleja una figura muy alta detrás de ti.","Cada reflejo muestra la misma postura atlética, y en ninguno hay cuernos.","Detrás de un espejo hay una caja con la mitad izquierda de un uniforme de baloncesto.","En el marco vacío aparece la mitad derecha: un uniforme de voleibol de manga corta.","El vapor se aclara y el espejo muestra su cara: rasgos asiáticos y mirada seria.","El último reflejo se rompe y deja ver un expediente con su nombre."],
+ rooms:[
+  {eq:"(2x + 1)/3 - (x - 2)/2 = 2",ok:["2(2x + 1) - 3(x - 2) = 12","4x + 2 - 3x + 6 = 12","x + 8 = 12","x = 4"],bad:["4x + 2 - 3x - 6 = 12","x - 4 = 12","x = 16"]},
+  {eq:"2x² - 5x = 3",ok:["2x² - 5x - 3 = 0","(2x + 1)(x - 3) = 0","x = -1/2","x = 3"],bad:["(2x - 1)(x + 3) = 0","x = 1/2","x = -3"]},
+  {eq:"x³ + 8 = 0",ok:["(x + 2)(x² - 2x + 4) = 0","x + 2 = 0","x² - 2x + 4 = 0 (Sin raíces reales)","Solución real: x = -2"],bad:["(x + 2)(x² + 2x + 4) = 0","x = 2","x = -2, x = 2"]},
+  {eq:"4|2x - 1| + 9 = 5",ok:["4|2x - 1| = -4","|2x - 1| = -1","Valor absoluto no puede ser negativo","No tiene solución (∅)"],bad:["2x - 1 = -1 o 2x - 1 = 1","x = 0","x = 1"]},
+  {eq:"√(x + 6) = x",ok:["x + 6 = x²","(x - 3)(x + 2) = 0","x = -2 (Solución extraña)","Solución válida: x = 3"],bad:["x + 6 = x","(x + 3)(x - 2) = 0","x = 3 y x = -2 válidas"]},
+  {eq:"x/(x - 2) + 1 = 2/(x - 2)",ok:["Valor prohibido: x ≠ 2","x + (x - 2) = 2","2x = 4 → x = 2","No tiene solución (x = 2 prohibido)"],bad:["x + 1 = 2","x = 2 (Válida)","x = 1"]}
+ ]},
+{name:'La Bóveda Maldita',diff:'Experto',color:'#ef4444',
+ titles:["La Cerradura","El Pasillo de Cajas","La Caja Fuerte","El Cofre Oxidado","La Reja Cerrada","La Vitrina Final"],
+ clues:["El código 1 abre la reja y detrás hay una silueta muy alta que respira despacio.","Las huellas en el polvo son de alguien atlético, y su sombra no tiene cuernos.","En la caja fuerte aparece la mitad izquierda de un uniforme de baloncesto rojo y negro.","El cofre guarda la mitad derecha: camiseta de voleibol violeta y blanca.","Una foto antigua dentro de la reja muestra su cara: rasgos asiáticos y expresión seria.","La vitrina final guarda el expediente con su nombre completo."],
+ rooms:[
+  {eq:"3 - 2[4x - (x + 5)] = 5x + 2",ok:["3 - 2(3x - 5) = 5x + 2","13 - 6x = 5x + 2","11 = 11x","x = 1"],bad:["3 - 6x - 10 = 5x + 2","-11x = -9","x = -1"]},
+  {eq:"3x² + 10x = 8",ok:["3x² + 10x - 8 = 0","(3x - 2)(x + 4) = 0","x = 2/3","x = -4"],bad:["(3x + 2)(x - 4) = 0","x = -2/3","x = 4"]},
+  {eq:"x³ - 7x + 6 = 0",ok:["División sintética (1, 0, -7, 6) con x = 1","(x - 1)(x² + x - 6) = 0","(x - 1)(x + 3)(x - 2) = 0","x = 1, x = -3, x = 2"],bad:["División sintética (1, -7, 6) sin 0","(x + 1)(x² - x - 6) = 0","x = -1, x = 3, x = -2"]},
+  {eq:"|3x - 2| = |x + 6|",ok:["Caso 1: 3x - 2 = x + 6","Caso 2: 3x - 2 = -(x + 6)","x = 4","x = -1"],bad:["3x - 2 = -x + 6","x = 2","No tiene solución (∅)"]},
+  {eq:"√(2x + 7) = x + 2",ok:["2x + 7 = x² + 4x + 4","(x + 3)(x - 1) = 0","x = -3 (Solución extraña)","Solución válida: x = 1"],bad:["2x + 7 = x² + 4","x = -3 y x = 1 válidas","x = -3"]},
+  {eq:"1/(x - 1) + 1/(x + 1) = 4/(x² - 1)",ok:["Valores prohibidos: x ≠ 1, -1","(x + 1) + (x - 1) = 4","2x = 4","x = 2 (Válida)"],bad:["1 + 1 = 4","x = 1","x = 4"]}
+ ]},
+{name:'Juicio de Framaldo',diff:'Maestro',color:'#a855f7',
+ titles:["El Estrado","Los Testigos","La Evidencia","La Defensa","El Veredicto","El Expediente Final"],
+ clues:["El código -1 abre el estrado del juicio y ves una figura muy alta sentada al fondo.","Los testigos describen a alguien atlético, y todos dicen que no tiene cuernos.","La evidencia: la mitad izquierda de un uniforme de baloncesto.","La defensa presenta la otra mitad: un uniforme de voleibol.","El juez levanta la capucha del acusado y se ve su rostro: rasgos asiáticos y mirada seria.","El veredicto está sellado en el expediente final: solo falta leer su nombre."],
+ rooms:[
+  {eq:"(3x - 1)/4 - (2x + 3)/3 = (x - 7)/6",ok:["3(3x - 1) - 4(2x + 3) = 2(x - 7)","x - 15 = 2x - 14","-x = 1","x = -1"],bad:["9x - 3 - 8x + 12 = 2x - 14","x = 1","x = -29"]},
+  {eq:"6x² - 7x - 5 = 0",ok:["(3x - 5)(2x + 1) = 0","3x - 5 = 0 o 2x + 1 = 0","x = 5/3","x = -1/2"],bad:["(3x + 5)(2x - 1) = 0","x = -5/3","x = 1/2"]},
+  {eq:"x⁴ - 13x² + 36 = 0",ok:["(x² - 9)(x² - 4) = 0","(x - 3)(x + 3)(x - 2)(x + 2) = 0","x = 3, x = -3","x = 2, x = -2"],bad:["(x² + 9)(x² + 4) = 0","Solo x = 3 y x = 2","x = 9, x = 4"]},
+  {eq:"|x² - 5| = 4",ok:["x² - 5 = 4 o x² - 5 = -4","x² = 9 o x² = 1","x = 3, x = -3","x = 1, x = -1"],bad:["Solo x² = 9","No tiene solución (∅)","x = 9, x = 1"]},
+  {eq:"x - √(3x + 7) = 1",ok:["√(3x + 7) = x - 1","x² - 5x - 6 = 0","x = -1 (Solución extraña)","Solución válida: x = 6"],bad:["x² + 1 = 3x + 7","x = 6 y x = -1 válidas","x = -6"]},
+  {eq:"2/(x - 3) + 3/(x + 2) = 10/(x² - x - 6)",ok:["Valores prohibidos: x ≠ 3, -2","2(x + 2) + 3(x - 3) = 10","5x = 15 → x = 3","No tiene solución (x = 3 prohibido)"],bad:["x = 3 (Válida)","5x + 13 = 10","x = -2"]}
+ ]}
+];
+
+/* =========================================================
+   ESTADO
+   ========================================================= */
+const S={level:0,room:0,lives:3,found:0,slots:[null,null,null,null],tokens:[],order:[],solved:false,over:false};
+const $=id=>document.getElementById(id);
+function shuffle(a){a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function toast(msg){const t=$('toast');t.textContent=msg;t.classList.remove('hidden');clearTimeout(toast.t);toast.t=setTimeout(()=>t.classList.add('hidden'),2800);}
+function fitHud(){document.body.style.paddingTop=$('hud').offsetHeight+'px';}
+window.addEventListener('resize',fitHud);
+
+function show(name){
+  ['menu','game','over','win'].forEach(s=>$('screen-'+s).classList.toggle('hidden',s!==name));
+  $('hud-game').classList.toggle('hidden',name==='menu');
+  if(name!=='game'){setHeartbeat(false);$('danger').classList.remove('on');}
+  fitHud(); window.scrollTo(0,0);
+}
+function heartsHTML(n){return [0,1,2].map(i=>'<span class="heart '+(i<n?'on':'off')+'">♥</span>').join('');}
+function updateHud(){
+  const L=LEVELS[S.level];
+  $('hud-level').textContent='Nivel '+(S.level+1)+' · Habitación '+(S.room+1)+' de 6';
+  $('hud-hearts').innerHTML=heartsHTML(S.lives);
+  $('hud-clues').textContent=S.found;
+  const low=S.lives===1&&!S.over;
+  $('danger').classList.toggle('on',low);
+  setHeartbeat(low);
+  fitHud();
+}
+
+/* =========================================================
+   MENÚ
+   ========================================================= */
+function buildMenu(){
+  let h='';
+  LEVELS.forEach((L,i)=>{
+    h+='<button class="card lvl p-4" onclick="startLevel('+i+')">'+
+      '<div class="flex items-center justify-between"><span class="text-xs font-bold tracking-widest" style="color:'+L.color+'">NIVEL '+(i+1)+'</span>'+
+      '<span class="text-[11px] px-2 py-0.5 rounded-full border" style="border-color:'+L.color+';color:'+L.color+'">'+L.diff+'</span></div>'+
+      '<div class="mt-2 text-lg font-extrabold">'+(i+1)+'. '+esc(L.name)+'</div>'+
+      '<div class="mt-1 text-xs text-zinc-400">6 habitaciones · 6 pistas</div></button>';
+  });
+  [['6','Sótano'],['7','Azotea'],['8','Contrarreloj']].forEach(a=>{
+    h+='<div class="card lvl locked p-4" onclick="toast(\'El Nivel '+a[0]+' ('+a[1]+') estará disponible próximamente.\')">'+
+      '<div class="flex items-center justify-between"><span class="text-xs font-bold tracking-widest text-zinc-500">NIVEL '+a[0]+' 🔒</span>'+
+      '<span class="text-[11px] px-2 py-0.5 rounded-full bg-violet-500/20 text-violet-300 border border-violet-500/40">Viene pronto</span></div>'+
+      '<div class="mt-2 text-lg font-extrabold text-zinc-400">'+a[0]+'. '+a[1]+'</div>'+
+      '<div class="mt-1 text-xs text-zinc-500">Bloqueado</div></div>';
+  });
+  $('levels').innerHTML=h;
+}
+function goMenu(){sfx.back();show('menu');}
+
+/* =========================================================
+   JUEGO
+   ========================================================= */
+function startLevel(i){
+  ac(); startAmbience(); sfx.click();
+  S.level=i;S.room=0;S.lives=3;S.found=0;S.over=false;
+  loadRoom(); show('game');
+}
+function loadRoom(){
+  const L=LEVELS[S.level],R=L.rooms[S.room],M=MANUAL[S.room];
+  S.tokens=R.ok.concat(R.bad).map((t,id)=>({id:id,text:t}));
+  S.order=shuffle(S.tokens.map(t=>t.id));
+  S.slots=[null,null,null,null];
+  S.solved=false;
+  $('fb').innerHTML='';$('success').innerHTML='';
+  $('btn-confirm').disabled=false;
+  const exSteps=M.ex.steps.map(s=>'<li>'+rich(s)+'</li>').join('');
+  $('room-static').innerHTML=
+    '<div class="flex flex-wrap items-center gap-2 text-xs">'+
+      '<span class="px-2 py-1 rounded-md bg-violet-500/20 text-violet-200 border border-violet-500/40 font-bold">'+esc(TIPOS[S.room])+'</span>'+
+      '<span class="text-zinc-400">Nivel '+(S.level+1)+' · '+esc(L.name)+'</span></div>'+
+    '<h2 class="mt-2 text-2xl md:text-3xl font-extrabold">Habitación '+(S.room+1)+': '+esc(L.titles[S.room])+'</h2>'+
+    '<p class="mt-1 text-sm italic text-red-300/80 flick">« '+esc(ATMOS[S.room])+' »</p>'+
+    '<details class="mt-3 card">'+
+      '<summary class="px-3 py-2 text-sm font-bold text-violet-300">💡 Ver ejemplo resuelto de guía</summary>'+
+      '<div class="px-4 pb-4 text-sm"><div class="text-zinc-400 text-xs mb-1">Ejemplo (otra ecuación del mismo tipo):</div>'+
+      '<div class="text-lg font-bold mb-2">'+fmt(M.ex.eq)+'</div>'+
+      '<ol class="list-decimal pl-5 space-y-1 text-zinc-300">'+exSteps+'</ol>'+
+      '<div class="mt-2 text-violet-300 font-bold">Respuesta: '+rich(M.ex.ans)+'</div></div></details>'+
+    '<div class="mt-3 rounded-xl border border-red-600/70 bg-red-600/10 p-3">'+
+      '<div class="text-xs font-extrabold text-red-400 tracking-wide">⚠️ ERROR COMÚN QUE DEBES EVITAR</div>'+
+      '<div class="mt-1 text-sm text-red-100">'+rich(M.error)+'</div></div>'+
+    '<div class="mt-4 card p-5 md:p-7 text-center border-violet-500/50" style="box-shadow:0 0 30px rgba(139,92,246,.12)">'+
+      '<div class="text-[11px] tracking-widest text-zinc-400 mb-3">ECUACIÓN DEL RETO</div>'+
+      '<div class="text-2xl md:text-4xl font-bold overflow-x-auto py-2">'+fmt(R.eq)+'</div></div>';
+  renderDyn(); updateHud();
+}
+function renderDyn(){
+  const labs=['Cuadrito 1 (Paso 1)','Cuadrito 2 (Paso 2)','Cuadrito 3 (Paso 3)','Cuadrito 4 (Final)'];
+  $('slots').innerHTML=S.slots.map((id,i)=>{
+    const t=id==null?null:S.tokens[id];
+    return '<div class="slot'+(t?' filled':'')+'" onclick="clickSlot('+i+')">'+
+      '<div class="text-[11px] text-violet-300 mb-1 font-bold">'+labs[i]+'</div>'+
+      '<div class="slot-body">'+(t?fmt(t.text):'<span class="text-zinc-600 text-xs">vacío</span>')+'</div></div>';
+  }).join('');
+  $('bank').innerHTML=S.order.filter(id=>!S.slots.includes(id)).map(id=>
+    '<button class="tok'+(S.solved?' off':'')+'" onclick="clickTok('+id+')">'+fmt(S.tokens[id].text)+'</button>').join('');
+}
+function clickTok(id){
+  if(S.solved||S.over)return;
+  const k=S.slots.indexOf(null); if(k<0){toast('Los 4 cuadritos están llenos. Toca uno para devolver su ficha.');return;}
+  S.slots[k]=id; sfx.click(); $('fb').innerHTML=''; renderDyn();
+}
+function clickSlot(i){
+  if(S.solved||S.over||S.slots[i]==null)return;
+  S.slots[i]=null; sfx.back(); renderDyn();
+}
+function clearSlots(){
+  if(S.solved||S.over)return;
+  S.slots=[null,null,null,null]; sfx.back(); $('fb').innerHTML=''; renderDyn();
+}
+function confirmAnswer(){
+  if(S.solved||S.over)return;
+  ac();
+  if(S.slots.includes(null)){
+    $('fb').innerHTML='<div class="rounded-xl border border-violet-500/60 bg-violet-500/10 p-3 text-sm pop">Primero llena los 4 cuadritos. Esto no te quita ninguna vida.</div>';
+    return;
+  }
+  const ok=S.slots.every((id,i)=>id===i);
+  if(ok){
+    S.solved=true; S.found++; sfx.ok();
+    $('btn-confirm').disabled=true;
+    $('fb').innerHTML='';
+    const last=S.room===5, L=LEVELS[S.level];
+    $('success').innerHTML=
+      '<div class="card p-5 border-violet-500/70 pop" style="box-shadow:0 0 30px rgba(139,92,246,.2)">'+
+      '<div class="text-xs font-extrabold tracking-widest text-violet-300">¿QUÉ PASA AL TERMINAR ESTA HABITACIÓN?</div>'+
+      '<p class="mt-2 text-base md:text-lg text-zinc-100">🔦 '+esc(L.clues[S.room])+'</p>'+
+      '<div class="mt-1 text-xs text-violet-300">Pista '+S.found+' de 6 desbloqueada</div>'+
+      '<button class="btn btn-vio !text-base !px-6 !py-3 mt-4 w-full md:w-auto" onclick="nextRoom()">'+(last?'Revelar identidad del monstruo →':'Pasa a la siguiente habitación →')+'</button></div>';
+    updateHud(); renderDyn();
+    setTimeout(()=>$('success').scrollIntoView({behavior:'smooth',block:'center'}),80);
+  }else{
+    S.lives--; sfx.err(); flash(); updateHud();
+    const el=$('slots'); el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake');
+    if(S.lives<=0){
+      S.over=true;
+      $('fb').innerHTML='<div class="rounded-xl border border-red-600 bg-red-600/15 p-3 text-sm text-red-100 pop">❌ Respuesta incorrecta. Te quedaste sin vidas.</div>';
+      setTimeout(()=>{$('over-clues').textContent=S.found;sfx.dead();show('over');},1000);
+    }else{
+      const q=S.lives===1?'te queda 1 vida':'te quedan '+S.lives+' vidas';
+      $('fb').innerHTML='<div class="rounded-xl border border-red-600 bg-red-600/15 p-3 text-sm text-red-100 pop">❌ Respuesta incorrecta: '+q+'. Revisa el <button class="underline font-bold text-violet-300" onclick="openManual('+S.room+')">Manual de Campo</button> y fíjate bien en el orden de los pasos y en las fichas trampa.</div>';
+    }
+  }
+}
+function nextRoom(){
+  sfx.click();
+  if(S.room<5){S.room++;loadRoom();window.scrollTo(0,0);}
+  else showWin();
+}
+
+/* =========================================================
+   VICTORIA: FRAMALDO
+   ========================================================= */
+const FRAMALDO_SVG=`
+<svg viewBox="0 0 300 500" width="100%" style="max-width:300px" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Framaldo: alto, atlético, sin cuernos, mitad uniforme de baloncesto y mitad de voleibol">
+  <defs>
+    <clipPath id="cl"><rect x="0" y="0" width="150" height="500"/></clipPath>
+    <clipPath id="cr"><rect x="150" y="0" width="150" height="500"/></clipPath>
+    <radialGradient id="glow" cx="50%" cy="45%" r="55%"><stop offset="0" stop-color="#8b5cf6" stop-opacity=".35"/><stop offset="1" stop-color="#8b5cf6" stop-opacity="0"/></radialGradient>
+  </defs>
+  <rect width="300" height="500" fill="url(#glow)"/>
+  <ellipse cx="150" cy="468" rx="95" ry="9" fill="#000" opacity=".5"/>
+
+  <!-- piernas -->
+  <path d="M112 255 L148 255 L144 438 L117 438 Z" fill="#dcb28a"/>
+  <path d="M152 255 L188 255 L183 438 L156 438 Z" fill="#dcb28a"/>
+  <!-- calcetas y zapatos -->
+  <rect x="117" y="405" width="27" height="33" fill="#f5f5f5"/><rect x="117" y="405" width="27" height="6" fill="#dc2626"/>
+  <rect x="156" y="405" width="27" height="33" fill="#f5f5f5"/><rect x="156" y="405" width="27" height="6" fill="#8b5cf6"/>
+  <path d="M112 438 L146 438 L154 458 L104 458 Q104 446 112 438Z" fill="#111"/><path d="M104 452 L154 452 L154 458 L104 458Z" fill="#dc2626"/>
+  <path d="M154 438 L188 438 Q196 446 196 458 L146 458 Z" fill="#f5f5f5"/><path d="M146 452 L196 452 L196 458 L146 458Z" fill="#8b5cf6"/>
+
+  <!-- brazos -->
+  <path d="M100 132 L72 150 L60 252 L82 256 L98 172 Z" fill="#dcb28a"/>
+  <path d="M200 132 L228 150 L240 252 L218 256 L202 172 Z" fill="#dcb28a"/>
+  <circle cx="71" cy="264" r="10" fill="#dcb28a"/><circle cx="229" cy="264" r="10" fill="#dcb28a"/>
+  <!-- cuello -->
+  <rect x="139" y="104" width="22" height="30" fill="#d3a67d"/>
+
+  <!-- camiseta mitad izquierda: baloncesto sin mangas -->
+  <g clip-path="url(#cl)">
+    <path d="M100 132 Q125 150 150 150 L150 255 L108 255 Z" fill="#dc2626"/>
+    <path d="M100 132 L112 138 L108 255 L102 255 Z" fill="#111"/>
+    <path d="M108 255 L150 255 L150 245 L109 245Z" fill="#111"/>
+    <text x="130" y="215" font-size="42" font-weight="800" fill="#fff" text-anchor="middle" font-family="monospace">7</text>
+  </g>
+  <!-- camiseta mitad derecha: voleibol manga corta -->
+  <g clip-path="url(#cr)">
+    <path d="M200 132 Q175 150 150 150 L150 255 L192 255 Z" fill="#8b5cf6"/>
+    <path d="M150 150 L150 255 L172 255 L172 150Z" fill="#ffffff" opacity=".9"/>
+    <path d="M200 132 L228 150 L224 190 L196 180 Z" fill="#8b5cf6"/>
+    <path d="M226 180 L224 190 L196 180 L198 170Z" fill="#fff"/>
+    <text x="178" y="215" font-size="34" font-weight="800" fill="#fff" text-anchor="middle" font-family="monospace" opacity=".0">V</text>
+  </g>
+  <!-- cuello de camiseta -->
+  <path d="M128 136 Q150 160 172 136 Q150 150 128 136Z" fill="#07070a" opacity=".55"/>
+
+  <!-- short de baloncesto (izq) y de voleibol (der) -->
+  <g clip-path="url(#cl)">
+    <path d="M106 250 L150 250 L150 350 L100 350 Z" fill="#161616"/>
+    <path d="M106 250 L112 250 L106 350 L100 350Z" fill="#dc2626"/>
+  </g>
+  <g clip-path="url(#cr)">
+    <path d="M150 250 L194 250 L198 322 L150 322 Z" fill="#8b5cf6"/>
+    <path d="M194 250 L190 250 L194 322 L198 322Z" fill="#fff"/>
+  </g>
+
+  <!-- cabeza SIN cuernos -->
+  <ellipse cx="116" cy="74" rx="6" ry="11" fill="#d3a67d"/>
+  <ellipse cx="184" cy="74" rx="6" ry="11" fill="#d3a67d"/>
+  <ellipse cx="150" cy="72" rx="35" ry="41" fill="#e8c39e"/>
+  <path d="M114 66 Q112 24 150 22 Q188 24 186 66 Q178 46 150 44 Q122 46 114 66 Z" fill="#111"/>
+  <!-- ojos rasgados -->
+  <path d="M128 70 Q137 66 146 73 Q137 75 128 70Z" fill="#111"/>
+  <path d="M172 70 Q163 66 154 73 Q163 75 172 70Z" fill="#111"/>
+  <circle cx="139" cy="71" r="1.6" fill="#fff"/><circle cx="161" cy="71" r="1.6" fill="#fff"/>
+  <!-- cejas serias -->
+  <path d="M126 61 L147 65" stroke="#111" stroke-width="3.2" stroke-linecap="round"/>
+  <path d="M174 61 L153 65" stroke="#111" stroke-width="3.2" stroke-linecap="round"/>
+  <!-- nariz y boca -->
+  <path d="M150 74 L147 87 Q150 90 153 87" fill="none" stroke="#b98a68" stroke-width="2" stroke-linecap="round"/>
+  <path d="M140 100 L160 100" stroke="#8a5a44" stroke-width="2.6" stroke-linecap="round"/>
+
+  <!-- línea divisoria -->
+  <line x1="150" y1="14" x2="150" y2="468" stroke="#8b5cf6" stroke-width="1" stroke-dasharray="4 5" opacity=".55"/>
+  <text x="75" y="490" font-size="11" fill="#dc2626" text-anchor="middle" font-family="monospace" font-weight="700">🏀 BALONCESTO</text>
+  <text x="225" y="490" font-size="11" fill="#a78bfa" text-anchor="middle" font-family="monospace" font-weight="700">🏐 VOLEIBOL</text>
+</svg>`;
+function showWin(){
+  sfx.boom(); flash(); setTimeout(()=>sfx.win(),700);
+  const L=LEVELS[S.level];
+  $('framaldo').innerHTML=FRAMALDO_SVG;
+  $('win-clues').innerHTML=L.clues.map(c=>'<li>'+esc(c)+'</li>').join('');
+  $('win-hearts').innerHTML='<span class="inline-flex gap-1 align-middle">'+heartsHTML(S.lives)+'</span> ('+S.lives+' de 3)';
+  let b='<button class="btn btn-vio" onclick="goMenu()">Jugar otro nivel</button>'+
+        '<button class="btn btn-ghost" onclick="startLevel('+S.level+')">Repetir este nivel</button>';
+  if(S.level<LEVELS.length-1)b='<button class="btn btn-vio" onclick="startLevel('+(S.level+1)+')">Siguiente nivel →</button>'+b.replace('btn-vio','btn-ghost');
+  $('win-actions').innerHTML=b;
+  show('win');
+}
+
+/* =========================================================
+   MANUAL DE CAMPO (ventana modal)
+   ========================================================= */
+let mTab=0;
+function openManual(i){
+  if(typeof i!=='number')i=(!$('screen-game').classList.contains('hidden'))?S.room:mTab;
+  mTab=i; renderManual(); $('manual').classList.remove('hidden');
+}
+function closeManual(){$('manual').classList.add('hidden');}
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeManual();});
+function renderManual(){
+  $('m-tabs').innerHTML=MANUAL.map((m,i)=>
+    '<button class="btn '+(i===mTab?'btn-vio':'btn-ghost')+' !py-1.5 whitespace-nowrap" onclick="mTab='+i+';renderManual()">'+(i+1)+'. '+esc(m.tab)+'</button>').join('');
+  const m=MANUAL[mTab];
+  const H=(n,t)=>'<h3 class="mt-5 mb-1 text-xs font-extrabold tracking-widest text-violet-300">'+n+'. '+t+'</h3>';
+  $('m-body').innerHTML=
+    '<div class="text-xl md:text-2xl font-extrabold">'+esc(m.icon)+' '+esc(m.name)+'</div>'+
+    H(1,'NOMBRE')+'<p class="text-sm">'+esc(m.name)+'</p>'+
+    H(2,'¿CÓMO LA RECONOZCO?')+'<p class="text-sm leading-relaxed">'+rich(m.recog)+'</p>'+
+    H(3,'REGLAS / PASOS')+'<ol class="list-decimal pl-5 space-y-1 text-sm leading-relaxed">'+m.steps.map(s=>'<li>'+rich(s)+'</li>').join('')+'</ol>'+
+    H(4,'HINTS / CONSEJOS')+'<ul class="list-disc pl-5 space-y-1 text-sm leading-relaxed">'+m.hints.map(s=>'<li>'+rich(s)+'</li>').join('')+'</ul>'+
+    H(5,'ERROR COMÚN')+'<div class="rounded-lg border border-red-600/70 bg-red-600/10 p-3 text-sm text-red-100">⚠️ '+rich(m.error)+'</div>'+
+    H(6,'EJEMPLO RESUELTO PASO A PASO')+
+      '<div class="card p-3"><div class="text-lg md:text-xl font-bold mb-2">'+fmt(m.ex.eq)+'</div>'+
+      '<ol class="list-decimal pl-5 space-y-1 text-sm leading-relaxed">'+m.ex.steps.map(s=>'<li>'+rich(s)+'</li>').join('')+'</ol>'+
+      '<div class="mt-2 text-sm font-bold text-violet-300">Respuesta: '+rich(m.ex.ans)+'</div></div>'+
+    H(7,'¡INTÉNTALO!')+
+      '<div class="card p-3"><div class="text-xs text-zinc-400 mb-1">Resuelve esta ecuación:</div>'+
+      '<div class="text-lg md:text-xl font-bold">'+fmt(m.tr.eq)+'</div>'+
+      '<details class="mt-2"><summary class="text-sm font-bold text-violet-300 cursor-pointer">Ver respuesta</summary>'+
+      '<div class="mt-1 text-sm">'+rich(m.tr.ans)+'</div></details></div>';
+  $('m-body').scrollTop=0;
+}
+
+/* =========================================================
+   MARCAS DE AGUA Y ARRANQUE
+   ========================================================= */
+(function wm(){
+  const f=['x = (−b ± √(b² − 4ac)) / 2a','a² + b² = c²','|x| = x si x ≥ 0','(x − 1)(x + 1) = x² − 1','f(x) = ax² + bx + c','x ≠ valores prohibidos','a·b = 0 ⇒ a = 0 o b = 0','√(x²) = |x|','x³ + 8 = (x + 2)(x² − 2x + 4)','y = mx + b','MCD · (a/b) = ...','Σ  ∫  π  ∞  Δ'];
+  let h='';
+  for(let i=0;i<22;i++){
+    const t=f[i%f.length],x=Math.random()*88,y=2+(i/22)*92,s=14+Math.random()*16,r=(Math.random()*16-8).toFixed(1);
+    h+='<span style="left:'+x+'%;top:'+y+'%;font-size:'+s+'px;--r:'+r+'deg;animation-delay:-'+(Math.random()*12).toFixed(1)+'s">'+esc(t)+'</span>';
+  }
+  $('wm').innerHTML=h;
+})();
+// linterna que sigue el dedo o el mouse
+(function(){
+  const d=$('dark');
+  function mv(x,y){d.style.setProperty('--mx',x+'px');d.style.setProperty('--my',y+'px');}
+  mv(innerWidth/2,innerHeight/3);
+  addEventListener('pointermove',e=>mv(e.clientX,e.clientY));
+  addEventListener('pointerdown',e=>mv(e.clientX,e.clientY));
+})();
+buildMenu();
+show('menu');
+document.addEventListener('pointerdown',()=>{ac();startAmbience();},{once:true});
+</script>
+</body>
+</html>
